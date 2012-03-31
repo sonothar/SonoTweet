@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="hello">Hello World, Login!</string>
+    <string name="app_name">SonoTweet</string>
+    <string name="twitter_callback">twitter-callback:///</string>
+    <string name="hint_tweet">Your tweet</string>
+    <string name="lb_send_tweet">Senden</string>
+    <string name="lb_new_tweet">Tweet schreiben</string>
+    <string name="lb_reload">Aktualisieren</string>
+    <string name="lb_logout">Abmelden</string>
+    <string name="lb_login">Anmelden</string>
+    <string name="msg_intro">Wilkommen bei SonoTweet!\nBitte melden Sie sich mit Ihrem Twitter Account an.\n\n\nDiese ist eine Beta Version. Für einen reibungslosen ablauf kann keine Garantie übernommen werden. Abstürze oder Probleme können auftreten.</string>
+    <string name="msg_error">Beim laden trat leider ein Fehler auf. Bitte versuchen Sie es später noch einmal.</string>
+</resources>

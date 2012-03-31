@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/new_tweet"
+          android:icon="@android:drawable/ic_menu_add"
+          android:title="@string/lb_new_tweet"
+          android:showAsAction="ifRoom"/>
+    <item android:id="@+id/logout"
+          android:icon="@android:drawable/ic_menu_close_clear_cancel"
+          android:title="@string/lb_logout"
+          android:showAsAction="never"/>
+</menu>
