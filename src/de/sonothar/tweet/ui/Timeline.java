@@ -8,20 +8,21 @@ import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.support.v4.widget.CursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockListFragment;
 import com.actionbarsherlock.view.Menu;
@@ -29,29 +30,13 @@ import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
 
 import de.sonothar.tweet.Constants;
-import de.sonothar.tweet.DaoMaster;
-import de.sonothar.tweet.DaoMaster.DevOpenHelper;
-import de.sonothar.tweet.DaoSession;
 import de.sonothar.tweet.R;
-import de.sonothar.tweet.Tweet;
-import de.sonothar.tweet.TweetDao;
+import de.sonothar.tweet.provider.TweetMeta;
 
 public class Timeline extends SherlockListFragment implements
 		LoaderCallbacks<Cursor> {
 
 	private SimpleCursorAdapter mAdapter;
-	private TweetDao mTweetDao;
-
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		DevOpenHelper helper = new DaoMaster.DevOpenHelper(getActivity(),
-				Constants.TweetDB, null);
-		SQLiteDatabase db = helper.getWritableDatabase();
-		DaoMaster daoMaster = new DaoMaster(db);
-		DaoSession daoSession = daoMaster.newSession();
-		mTweetDao = daoSession.getTweetDao();
-	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -64,16 +49,17 @@ public class Timeline extends SherlockListFragment implements
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		setListAdapter(null);
 		setHasOptionsMenu(true);
 
-		// mAdapter = new SimpleCursorAdapter(getActivity(),
-		// android.R.layout.simple_list_item_2, null, new String[] {
-		// TweetMeta.TEXT, TweetMeta.SOURCE }, new int[] {
-		// android.R.id.text1, android.R.id.text2 }, 0);
+		mAdapter = new SimpleCursorAdapter(getActivity(),
+				android.R.layout.simple_list_item_2, null, new String[] {
+						TweetMeta.TEXT, TweetMeta.SOURCE }, new int[] {
+						android.R.id.text1, android.R.id.text2 }, 0);
+		setListAdapter(mAdapter);
+
 		getLoaderManager().initLoader(0, null, this);
 
-		new TimelineLoadingTask(getActivity(), mTweetDao).execute();
+		new TimelineLoadingTask(getActivity()).execute();
 	}
 
 	@Override
@@ -90,20 +76,32 @@ public class Timeline extends SherlockListFragment implements
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		return super.onOptionsItemSelected(item);
+		switch (item.getItemId()) {
+		case R.id.menu_reload:
+			Toast.makeText(getActivity(), "Reload: TBD!", Toast.LENGTH_LONG)
+					.show();
+			return true;
+		case android.R.id.home:
+			Toast.makeText(getActivity(), "Home: TBD!", Toast.LENGTH_LONG)
+					.show();
+			return true;
+		default:
+			return false;
+		}
 	}
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle data) {
-		// return new CursorLoader(getActivity(), TweetMeta.URI, null, null,
-		// null,
-		// null);
-		return null;
+		return new CursorLoader(getActivity(), TweetMeta.CONTENT_URI, null,
+				null, null, null);
 	}
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-
+		if (data != null) {
+			data.setNotificationUri(getActivity().getContentResolver(),
+					TweetMeta.CONTENT_URI);
+		}
 		mAdapter.swapCursor(data);
 		// if (result == null) {
 		// ((TextView) getListView().getEmptyView())
@@ -122,49 +120,16 @@ public class Timeline extends SherlockListFragment implements
 
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
-	}
-
-	private static class TimelineCursorAdapter extends CursorAdapter {
-
-		public TimelineCursorAdapter(Context context, Cursor c) {
-			super(context, c, true);
-		}
-
-		@Override
-		public void bindView(View arg0, Context arg1, Cursor arg2) {
-			// TODO Auto-generated method stub
-		}
-
-		@Override
-		public View newView(Context arg0, Cursor arg1, ViewGroup arg2) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-	}
-
-	private static class TimelineCursorLoader extends CursorLoader {
-
-		public TimelineCursorLoader(Context context) {
-			super(context);
-			// TODO Auto-generated constructor stub
-		}
-
-		@Override
-		public Cursor loadInBackground() {
-
-			return super.loadInBackground();
-		}
+		mAdapter.swapCursor(null);
 	}
 
 	private static class TimelineLoadingTask extends
 			AsyncTask<Void, Void, Void> {
-		private final Context context;
-		private final TweetDao tweetDao;
 
-		private TimelineLoadingTask(Context context, TweetDao tweetDao) {
+		private final Context context;
+
+		private TimelineLoadingTask(Context context) {
 			this.context = context;
-			this.tweetDao = tweetDao;
 		}
 
 		@Override
@@ -188,31 +153,42 @@ public class Timeline extends SherlockListFragment implements
 			try {
 				timeline = t.getHomeTimeline();
 			} catch (TwitterException e) {
-				e.printStackTrace();
+				Log.e(TimelineLoadingTask.class.getSimpleName(),
+						"Error while loading timeline.", e);
 				return null;
 			}
 
+			Log.i(TimelineLoadingTask.class.getSimpleName(), //
+					timeline.size() + " entries found.");
+
+			ContentValues[] values = new ContentValues[timeline.size()];
+
 			for (int i = 0; i < timeline.size(); i++) {
-				Tweet tweet = getValues(timeline.get(i));
-				// TODO save in DAO
-				tweetDao.insert(tweet);
+				values[i] = getValues(timeline.get(i));
 			}
 
-			// int count =
-			// context.getContentResolver().bulkInsert(TweetMeta.URI,
-			// cvList);
-			//
-			// Log.i(TimelineLoadingTask.class.getSimpleName(), "Es wurden "
-			// + count + " Einträge gespeichert.");
+			context.getContentResolver().delete(TweetMeta.CONTENT_URI, null,
+					null);
+			int insertCount = context.getContentResolver().bulkInsert(
+					TweetMeta.CONTENT_URI, values);
+			Log.i(TimelineLoadingTask.class.getSimpleName(), "Es wurden "
+					+ insertCount + " Einträge gespeichert.");
+
 			return null;
 		}
 
-		private Tweet getValues(twitter4j.Status status) {
-			return new Tweet(status.getId(), status.getText(),
-					status.getCreatedAt(), status.isRetweet(), status.getUser()
-							.getName(), status.getSource(),
-					status.isRetweetedByMe());
-		}
+		private ContentValues getValues(twitter4j.Status status) {
+			ContentValues cv = new ContentValues();
 
+			cv.put(TweetMeta.TWEET_ID, status.getId());
+			cv.put(TweetMeta.TEXT, status.getText());
+			cv.put(TweetMeta.CREATED_AT, status.getCreatedAt().getTime());
+			cv.put(TweetMeta.RETWEET, status.isRetweet());
+			cv.put(TweetMeta.USER, status.getUser().getName());
+			cv.put(TweetMeta.SOURCE, status.getSource());
+			cv.put(TweetMeta.RETWEET_BY_ME, status.isRetweetedByMe());
+
+			return cv;
+		}
 	}
 }

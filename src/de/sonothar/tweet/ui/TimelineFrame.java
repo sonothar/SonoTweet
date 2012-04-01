@@ -11,6 +11,7 @@ import com.actionbarsherlock.view.MenuItem;
 
 import de.sonothar.tweet.Constants;
 import de.sonothar.tweet.R;
+import de.sonothar.tweet.provider.TweetMeta;
 
 public class TimelineFrame extends SherlockFragmentActivity {
 
@@ -46,6 +47,9 @@ public class TimelineFrame extends SherlockFragmentActivity {
 
 		preferences.edit().clear().commit();
 		startActivity(new Intent(this, Overview.class));
+
+		getContentResolver().delete(TweetMeta.CONTENT_URI, null, null);
+
 		finish();
 	}
 }
