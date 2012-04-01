@@ -17,11 +17,13 @@ import android.os.Bundle;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.support.v4.widget.SimpleCursorAdapter;
+import android.support.v4.widget.CursorAdapter;
+import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockListFragment;
@@ -31,12 +33,13 @@ import com.actionbarsherlock.view.MenuItem;
 
 import de.sonothar.tweet.Constants;
 import de.sonothar.tweet.R;
+import de.sonothar.tweet.TweetStatus;
 import de.sonothar.tweet.provider.TweetMeta;
 
 public class Timeline extends SherlockListFragment implements
 		LoaderCallbacks<Cursor> {
 
-	private SimpleCursorAdapter mAdapter;
+	private TimelineAdapter mAdapter;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -51,22 +54,10 @@ public class Timeline extends SherlockListFragment implements
 		super.onActivityCreated(savedInstanceState);
 		setHasOptionsMenu(true);
 
-		mAdapter = new SimpleCursorAdapter(getActivity(),
-				android.R.layout.simple_list_item_2, null, new String[] {
-						TweetMeta.TEXT, TweetMeta.SOURCE }, new int[] {
-						android.R.id.text1, android.R.id.text2 }, 0);
+		mAdapter = new TimelineAdapter(getActivity(), null);
 		setListAdapter(mAdapter);
 
 		getLoaderManager().initLoader(0, null, this);
-
-		new TimelineLoadingTask(getActivity()).execute();
-	}
-
-	@Override
-	public void onResume() {
-		super.onResume();
-		// setListAdapter(new ArrayAdapter<String>(getActivity(),
-		// android.R.layout.simple_list_item_1, tweets));
 	}
 
 	@Override
@@ -78,8 +69,8 @@ public class Timeline extends SherlockListFragment implements
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.menu_reload:
-			Toast.makeText(getActivity(), "Reload: TBD!", Toast.LENGTH_LONG)
-					.show();
+			Toast.makeText(getActivity(), "Reload", Toast.LENGTH_LONG).show();
+			new TimelineLoadingTask(getActivity()).execute();
 			return true;
 		case android.R.id.home:
 			Toast.makeText(getActivity(), "Home: TBD!", Toast.LENGTH_LONG)
@@ -103,24 +94,75 @@ public class Timeline extends SherlockListFragment implements
 					TweetMeta.CONTENT_URI);
 		}
 		mAdapter.swapCursor(data);
-		// if (result == null) {
-		// ((TextView) getListView().getEmptyView())
-		// .setText("Keine Tweets gefunden!");
-		// Toast.makeText(getSherlockActivity(), "Keine Tweets gefunden.",
-		// Toast.LENGTH_LONG).show();
-		// return;
-		// }
-		// // setEmptyText(result.size() + " Tweets gefunden!");
-		// Toast.makeText(getSherlockActivity(),
-		// result.size() + " Tweets gefunden.", Toast.LENGTH_LONG).show();
-		//
-		// setListAdapter(new TimelineAdapter(getActivity(), R.id.txt_status,
-		// result));
 	}
 
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
 		mAdapter.swapCursor(null);
+	}
+
+	private static class TimelineAdapter extends CursorAdapter {
+
+		public TimelineAdapter(Context context, Cursor c) {
+			super(context, c, true);
+		}
+
+		@Override
+		public void bindView(View view, Context context, Cursor cursor) {
+			setTweetData(view, cursor);
+		}
+
+		@Override
+		public View newView(Context context, Cursor cursor, ViewGroup viewGroup) {
+			View status = ((LayoutInflater) context
+					.getSystemService(Context.LAYOUT_INFLATER_SERVICE))
+					.inflate(R.layout.status, viewGroup, false);
+
+			setTweetData(status, cursor);
+
+			return status;
+		}
+
+		private TweetStatus getStatus(Cursor cursor) {
+			int tweetCoursorId = cursor.getColumnIndex(TweetMeta.TEXT);
+			int userCoursorId = cursor.getColumnIndex(TweetMeta.USER);
+			int createdCoursorId = cursor.getColumnIndex(TweetMeta.CREATED_AT);
+			int sourceCoursorId = cursor.getColumnIndex(TweetMeta.SOURCE);
+			int retweetCoursorId = cursor.getColumnIndex(TweetMeta.RETWEET);
+			int retweetByMeCoursorId = cursor
+					.getColumnIndex(TweetMeta.RETWEET_BY_ME);
+			int tweetIdCoursorId = cursor.getColumnIndex(TweetMeta.TWEET_ID);
+
+			return new TweetStatus(cursor.getLong(tweetIdCoursorId),
+					cursor.getString(tweetCoursorId),
+					cursor.getString(userCoursorId),
+					cursor.getString(sourceCoursorId),
+					cursor.getLong(createdCoursorId),
+					cursor.getInt(retweetCoursorId) > 0,
+					cursor.getInt(retweetByMeCoursorId) > 0);
+		}
+
+		private void setTweetData(View status, Cursor cursor) {
+			TweetStatus tweetStatus = getStatus(cursor);
+
+			TextView user = (TextView) status
+					.findViewById(R.id.txt_status_user);
+			user.setText(tweetStatus.getUsername());
+
+			TextView date = (TextView) status
+					.findViewById(R.id.txt_status_date);
+			date.setText(tweetStatus.getCreatedAt().toLocaleString());
+			TextView tweet = (TextView) status
+					.findViewById(R.id.txt_status_tweet);
+			tweet.setText(tweetStatus.getText());
+
+			// TODO howto really get the html links clickable???
+			TextView source = (TextView) status
+					.findViewById(R.id.txt_status_source);
+			source.setText(Html.fromHtml(tweetStatus.getSource()));
+			source.setLinksClickable(true);
+
+		}
 	}
 
 	private static class TimelineLoadingTask extends
