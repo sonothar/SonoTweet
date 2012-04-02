@@ -9,7 +9,7 @@ Developed By
 ============
 
 * Dennis Daum - <sonothar.tech@gmail.com>
-
+* http://www.sonoblog.de
 
 
 License
