@@ -23,6 +23,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -58,6 +59,11 @@ public class Timeline extends SherlockListFragment implements
 		setListAdapter(mAdapter);
 
 		getLoaderManager().initLoader(0, null, this);
+	}
+
+	@Override
+	public void onListItemClick(ListView l, View v, int position, long id) {
+		// TODO open fragment view with tweet and details
 	}
 
 	@Override
@@ -116,7 +122,7 @@ public class Timeline extends SherlockListFragment implements
 		public View newView(Context context, Cursor cursor, ViewGroup viewGroup) {
 			View status = ((LayoutInflater) context
 					.getSystemService(Context.LAYOUT_INFLATER_SERVICE))
-					.inflate(R.layout.status, viewGroup, false);
+					.inflate(R.layout.timeline_row, viewGroup, false);
 
 			setTweetData(status, cursor);
 
@@ -146,22 +152,20 @@ public class Timeline extends SherlockListFragment implements
 			TweetStatus tweetStatus = getStatus(cursor);
 
 			TextView user = (TextView) status
-					.findViewById(R.id.txt_status_user);
+					.findViewById(R.id.txt_timeline_row_user);
 			user.setText(tweetStatus.getUsername());
 
 			TextView date = (TextView) status
-					.findViewById(R.id.txt_status_date);
+					.findViewById(R.id.txt_timeline_row_date);
 			date.setText(tweetStatus.getCreatedAt().toLocaleString());
+
 			TextView tweet = (TextView) status
-					.findViewById(R.id.txt_status_tweet);
+					.findViewById(R.id.txt_timeline_row_tweet);
 			tweet.setText(tweetStatus.getText());
 
-			// TODO howto really get the html links clickable???
 			TextView source = (TextView) status
-					.findViewById(R.id.txt_status_source);
+					.findViewById(R.id.txt_timeline_row_source);
 			source.setText(Html.fromHtml(tweetStatus.getSource()));
-			source.setLinksClickable(true);
-
 		}
 	}
 
