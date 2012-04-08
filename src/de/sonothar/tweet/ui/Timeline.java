@@ -2,6 +2,9 @@ package de.sonothar.tweet.ui;
 
 import static de.sonothar.tweet.Constants.OAUTH_CONSUMER_KEY;
 import static de.sonothar.tweet.Constants.OAUTH_CONSUMER_SECRET;
+
+import java.text.DateFormat;
+
 import twitter4j.ResponseList;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -18,7 +21,6 @@ import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
-import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -47,6 +49,12 @@ public class Timeline extends SherlockListFragment implements
 			Bundle savedInstanceState) {
 
 		View layout = inflater.inflate(R.layout.timeline, null);
+		// View timeline_loading = inflater.inflate(R.layout.timeline_loading,
+		// null);
+		//
+		// ListView list = (ListView) layout.findViewById(android.R.id.list);
+		// list.addFooterView(timeline_loading);
+
 		return layout;
 	}
 
@@ -64,6 +72,7 @@ public class Timeline extends SherlockListFragment implements
 	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {
 		// TODO open fragment view with tweet and details
+		((TimelineFrame) getActivity()).openStatus();
 	}
 
 	@Override
@@ -95,22 +104,18 @@ public class Timeline extends SherlockListFragment implements
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-		if (data != null) {
-			data.setNotificationUri(getActivity().getContentResolver(),
-					TweetMeta.CONTENT_URI);
-		}
-		mAdapter.swapCursor(data);
+		mAdapter.changeCursor(data);
 	}
 
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
-		mAdapter.swapCursor(null);
+		mAdapter.changeCursor(null);
 	}
 
 	private static class TimelineAdapter extends CursorAdapter {
 
 		public TimelineAdapter(Context context, Cursor c) {
-			super(context, c, true);
+			super(context, c, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
 		}
 
 		@Override
@@ -151,21 +156,23 @@ public class Timeline extends SherlockListFragment implements
 		private void setTweetData(View status, Cursor cursor) {
 			TweetStatus tweetStatus = getStatus(cursor);
 
+			TextView tweet = (TextView) status
+					.findViewById(R.id.txt_timeline_row_tweet);
+			tweet.setText(tweetStatus.getText());
+
 			TextView user = (TextView) status
 					.findViewById(R.id.txt_timeline_row_user);
 			user.setText(tweetStatus.getUsername());
 
 			TextView date = (TextView) status
 					.findViewById(R.id.txt_timeline_row_date);
-			date.setText(tweetStatus.getCreatedAt().toLocaleString());
+			DateFormat dateFormat = android.text.format.DateFormat
+					.getTimeFormat(mContext);
+			date.setText(dateFormat.format(tweetStatus.getCreatedAt()));
 
-			TextView tweet = (TextView) status
-					.findViewById(R.id.txt_timeline_row_tweet);
-			tweet.setText(tweetStatus.getText());
-
-			TextView source = (TextView) status
-					.findViewById(R.id.txt_timeline_row_source);
-			source.setText(Html.fromHtml(tweetStatus.getSource()));
+			// TextView source = (TextView) status
+			// .findViewById(R.id.txt_timeline_row_source);
+			// source.setText(Html.fromHtml(tweetStatus.getSource()).toString());
 		}
 	}
 

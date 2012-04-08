@@ -1,17 +1,14 @@
 package de.sonothar.tweet.ui;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
 
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 
-import de.sonothar.tweet.Constants;
 import de.sonothar.tweet.R;
-import de.sonothar.tweet.provider.TweetMeta;
 
 public class TimelineFrame extends SherlockFragmentActivity {
 
@@ -33,23 +30,36 @@ public class TimelineFrame extends SherlockFragmentActivity {
 		case R.id.new_tweet:
 			startActivity(new Intent(this, CreateTweet.class));
 			return true;
-		case R.id.logout:
-			clearUserdata();
-			return true;
+			// case R.id.logout:
+			// clearUserdata();
+			// return true;
 		default:
 			return false;
 		}
 	}
 
-	private void clearUserdata() {
-		SharedPreferences preferences = getSharedPreferences(
-				Constants.USER_DATA, Context.MODE_PRIVATE);
+	public void openStatus() {
+		Status status = new Status();
+		FragmentTransaction transaction = getSupportFragmentManager()
+				.beginTransaction();
 
-		preferences.edit().clear().commit();
-		startActivity(new Intent(this, Overview.class));
+		transaction.add(R.id.timeline_fragment, status);
+		transaction.addToBackStack(null);
+		transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE
+				| FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
 
-		getContentResolver().delete(TweetMeta.CONTENT_URI, null, null);
-
-		finish();
+		transaction.commit();
 	}
+
+	// private void clearUserdata() {
+	// SharedPreferences preferences = getSharedPreferences(
+	// Constants.USER_DATA, Context.MODE_PRIVATE);
+	//
+	// preferences.edit().clear().commit();
+	// startActivity(new Intent(this, Overview.class));
+	//
+	// getContentResolver().delete(TweetMeta.CONTENT_URI, null, null);
+	//
+	// finish();
+	// }
 }

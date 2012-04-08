@@ -1,5 +1,7 @@
 package de.sonothar.tweet.ui;
 
+import static com.actionbarsherlock.app.ActionBar.DISPLAY_HOME_AS_UP;
+import static com.actionbarsherlock.app.ActionBar.DISPLAY_USE_LOGO;
 import static de.sonothar.tweet.Constants.OAUTH_CONSUMER_KEY;
 import static de.sonothar.tweet.Constants.OAUTH_CONSUMER_SECRET;
 import twitter4j.Status;
@@ -34,7 +36,8 @@ public class CreateTweet extends SherlockFragmentActivity implements
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.tweet);
-		getSupportActionBar().setHomeButtonEnabled(true);
+		getSupportActionBar().setDisplayOptions(DISPLAY_HOME_AS_UP,
+				DISPLAY_HOME_AS_UP | DISPLAY_USE_LOGO);
 
 		settings = getSharedPreferences("twitter_token", Context.MODE_PRIVATE);
 
@@ -99,7 +102,7 @@ public class CreateTweet extends SherlockFragmentActivity implements
 				String tweetText) {
 			super(context);
 			this.settings = settings;
-			this.tweet = tweetText;
+			tweet = tweetText;
 		}
 
 		@Override

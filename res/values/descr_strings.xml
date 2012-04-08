@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="descr_status_respond">Antworten</string>
+    <string name="descr_status_image">Nutzericon</string>
+    <string name="descr_status_contact_info">Profil des Nutzers anschauen.</string>
+</resources>

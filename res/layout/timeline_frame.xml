@@ -6,6 +6,7 @@
     
     <fragment class="de.sonothar.tweet.ui.Timeline"
         android:layout_height="match_parent"
-        android:layout_width="match_parent"/>
+        android:layout_width="match_parent"
+        android:id="@+id/timeline_fragment"/>
         
 </merge>

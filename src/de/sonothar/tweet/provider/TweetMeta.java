@@ -70,6 +70,8 @@ public final class TweetMeta implements BaseColumns {
 	public static String USER = "user";
 	public static String SOURCE = "source";
 	public static String RETWEET_BY_ME = "retweet_by_me";
+	
+	//TODO Provider um mehr Userdaten oder gar eine Usertabelle erweitern.
 
 	/**
 	 * The default sort order for this table
