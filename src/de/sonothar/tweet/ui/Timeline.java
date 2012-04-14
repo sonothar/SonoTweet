@@ -49,11 +49,11 @@ public class Timeline extends SherlockListFragment implements
 			Bundle savedInstanceState) {
 
 		View layout = inflater.inflate(R.layout.timeline, null);
-		// View timeline_loading = inflater.inflate(R.layout.timeline_loading,
-		// null);
-		//
-		// ListView list = (ListView) layout.findViewById(android.R.id.list);
-		// list.addFooterView(timeline_loading);
+		View timeline_loading = inflater.inflate(R.layout.timeline_loading,
+				null);
+
+		ListView list = (ListView) layout.findViewById(android.R.id.list);
+		list.addFooterView(timeline_loading);
 
 		return layout;
 	}
@@ -121,6 +121,12 @@ public class Timeline extends SherlockListFragment implements
 		@Override
 		public void bindView(View view, Context context, Cursor cursor) {
 			setTweetData(view, cursor);
+
+			if (cursor.isLast()) {
+				// TODO load more tweets
+				Toast.makeText(mContext, "reload more tweets",
+						Toast.LENGTH_LONG).show();
+			}
 		}
 
 		@Override
@@ -130,6 +136,12 @@ public class Timeline extends SherlockListFragment implements
 					.inflate(R.layout.timeline_row, viewGroup, false);
 
 			setTweetData(status, cursor);
+
+			if (cursor.isLast()) {
+				// TODO load more tweets
+				Toast.makeText(mContext, "reload more tweets",
+						Toast.LENGTH_LONG).show();
+			}
 
 			return status;
 		}

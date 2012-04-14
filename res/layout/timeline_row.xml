@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/timeline_status" >
 
     <TextView
         android:id="@+id/txt_timeline_row_tweet"
@@ -10,7 +11,7 @@
         android:layout_height="wrap_content" 
         android:padding="5dp"
         android:drawableLeft="@drawable/status_fill_icon"
-        android:drawablePadding="5dp"/>
+        android:drawablePadding="10dp"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -31,12 +32,5 @@
             android:layout_weight="1" 
             android:gravity="right"/>
     </LinearLayout>
-
-    <!--
-         <TextView
-        android:id="@+id/txt_timeline_row_source"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-    -->
 
 </LinearLayout>
