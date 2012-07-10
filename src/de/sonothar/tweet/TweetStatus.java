@@ -16,19 +16,21 @@ import twitter4j.UserMentionEntity;
 @SuppressWarnings({ "serial", "deprecation" })
 public class TweetStatus implements Status {
 
-	private String tweet;
-	private String user;
-	private String source;
-	private Date date;
-	private boolean isRetweet;
-	private boolean isRetweetByMe;
-	private long tweetId;
+	private final String tweet;
+	private final String user;
+	private final String userNick;
+	private final String source;
+	private final Date date;
+	private final boolean isRetweet;
+	private final boolean isRetweetByMe;
+	private final long tweetId;
 
-	public TweetStatus(long tweetId, String tweet, String user, String source,
+	public TweetStatus(long tweetId, String tweet, String user, String userNick, String source,
 			long date, boolean isRetweet, boolean isRetweetByMe) {
 		this.tweetId = tweetId;
 		this.tweet = tweet;
 		this.user = user;
+		this.userNick = userNick;
 		this.source = source;
 		this.date = new Date(date);
 		this.isRetweet = isRetweet;
@@ -37,6 +39,10 @@ public class TweetStatus implements Status {
 
 	public String getUsername() {
 		return user;
+	}
+
+	public String getUserNick() {
+		return userNick;
 	}
 
 	@Override

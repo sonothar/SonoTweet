@@ -19,13 +19,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-
-import com.actionbarsherlock.app.SherlockActivity;
-
 import de.sonothar.tweet.Constants;
 import de.sonothar.tweet.R;
 
-public class Overview extends SherlockActivity {
+public class Overview extends Activity {
 
 	private Twitter mTwitter;
 	private RequestToken mRequestToken;

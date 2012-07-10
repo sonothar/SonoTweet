@@ -19,6 +19,7 @@ public class TweetProvider extends ContentProvider {
 
 	private static final int TWEET_ID = 1;
 	private static final int TWEETS = 2;
+	private static final int LAST_STATUS_ID = 3;
 
 	private static final UriMatcher uriMatcher = new UriMatcher(
 			UriMatcher.NO_MATCH);
@@ -27,6 +28,8 @@ public class TweetProvider extends ContentProvider {
 		uriMatcher.addURI(TweetMeta.AUTHORITY, TweetMeta.PATH_TWEETS_ID + "#",
 				TWEET_ID);
 		uriMatcher.addURI(TweetMeta.AUTHORITY, TweetMeta.PATH_TWEETS, TWEETS);
+		uriMatcher.addURI(TweetMeta.AUTHORITY, TweetMeta.PATH_LAST_TWEET_ID,
+				LAST_STATUS_ID);
 	}
 
 	@Override
@@ -61,12 +64,21 @@ public class TweetProvider extends ContentProvider {
 		SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
 		qb.setTables(TweetMeta.TABLE_NAME);
 
-		if (uriMatcher.match(uri) == TWEET_ID) {
+		switch (uriMatcher.match(uri)) {
+		case TWEET_ID:
 			qb.appendWhere(TweetMeta.TWEET_ID
 					+ "="
 					+ uri.getPathSegments().get(
 							TweetMeta.TWEET_ID_PATH_POSITION));
-		} else if (uriMatcher.match(uri) != TWEETS) {
+
+			break;
+
+		case TWEETS:
+			break;
+		case LAST_STATUS_ID:
+
+			return null;
+		default:
 			throw new IllegalArgumentException("Unknown URI: " + uri);
 		}
 
@@ -89,6 +101,7 @@ public class TweetProvider extends ContentProvider {
 				null, // don't filter by row groups
 				orderBy // The sort order
 				);
+		c.setNotificationUri(getContext().getContentResolver(), uri);
 
 		return c;
 	}
@@ -115,7 +128,7 @@ public class TweetProvider extends ContentProvider {
 
 			// Notifies observers registered against this provider that the data
 			// changed.
-			getContext().getContentResolver().notifyChange(noteUri, null);
+			getContext().getContentResolver().notifyChange(uri, null);
 			return noteUri;
 		}
 
@@ -134,7 +147,9 @@ public class TweetProvider extends ContentProvider {
 
 		SQLiteDatabase db = mOpenHelper.getWritableDatabase();
 
-		db.execSQL("DELETE FROM " + TweetMeta.TABLE_NAME);
+		db.delete(TweetMeta.TABLE_NAME, selection, selectionArgs);
+
+		getContext().getContentResolver().notifyChange(uri, null);
 
 		return 0;
 	}

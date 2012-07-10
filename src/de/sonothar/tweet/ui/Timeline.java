@@ -1,48 +1,37 @@
 package de.sonothar.tweet.ui;
 
-import static de.sonothar.tweet.Constants.OAUTH_CONSUMER_KEY;
-import static de.sonothar.tweet.Constants.OAUTH_CONSUMER_SECRET;
-
 import java.text.DateFormat;
 
-import twitter4j.ResponseList;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
-import twitter4j.TwitterFactory;
-import twitter4j.conf.Configuration;
-import twitter4j.conf.ConfigurationBuilder;
-import android.content.ContentValues;
+import android.app.ListFragment;
+import android.app.LoaderManager.LoaderCallbacks;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
-import android.content.SharedPreferences;
+import android.content.CursorLoader;
+import android.content.Intent;
+import android.content.Loader;
 import android.database.Cursor;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
-import android.support.v4.widget.CursorAdapter;
-import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CursorAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.actionbarsherlock.app.SherlockListFragment;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
-
-import de.sonothar.tweet.Constants;
 import de.sonothar.tweet.R;
+import de.sonothar.tweet.TimelineLoadingTask;
 import de.sonothar.tweet.TweetStatus;
 import de.sonothar.tweet.provider.TweetMeta;
 
-public class Timeline extends SherlockListFragment implements
-		LoaderCallbacks<Cursor> {
+public class Timeline extends ListFragment implements LoaderCallbacks<Cursor> {
 
 	private TimelineAdapter mAdapter;
+	private long lastTweetId = 0;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -71,8 +60,12 @@ public class Timeline extends SherlockListFragment implements
 
 	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {
+
+		Cursor c = (Cursor) getListView().getItemAtPosition(position);
+		TweetStatus tweet = TweetMeta.getStatus(c);
+
 		// TODO open fragment view with tweet and details
-		((TimelineFrame) getActivity()).openStatus();
+		((TimelineFrame) getActivity()).openStatus(tweet);
 	}
 
 	@Override
@@ -84,12 +77,29 @@ public class Timeline extends SherlockListFragment implements
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.menu_reload:
-			Toast.makeText(getActivity(), "Reload", Toast.LENGTH_LONG).show();
-			new TimelineLoadingTask(getActivity()).execute();
+			Notification.Builder nb = new Notification.Builder(getActivity());
+			Intent intent = new Intent(getActivity(), TimelineFrame.class);
+			nb.setSmallIcon(R.drawable.app_icon)
+					.setContentText(
+							"Tweet are being pulled! Please be patient.")
+					.setContentTitle("SonoTweet")
+					.setContentIntent(
+							PendingIntent.getActivity(getActivity(), 0, intent,
+									0)).setWhen(System.currentTimeMillis())
+					.setOngoing(true);
+			NotificationManager nm = (NotificationManager) getActivity()
+					.getSystemService(Context.NOTIFICATION_SERVICE);
+			nm.notify(113, nb.getNotification());
+
+			new TimelineLoadingTask(getActivity(), lastTweetId).execute();
 			return true;
 		case android.R.id.home:
 			Toast.makeText(getActivity(), "Home: TBD!", Toast.LENGTH_LONG)
 					.show();
+			return true;
+		case R.id.menu_clear_tweets:
+			getActivity().getContentResolver().delete(TweetMeta.CONTENT_URI,
+					null, null);
 			return true;
 		default:
 			return false;
@@ -104,7 +114,11 @@ public class Timeline extends SherlockListFragment implements
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+
 		mAdapter.changeCursor(data);
+		Toast.makeText(getActivity(), "Tweets geladen", Toast.LENGTH_LONG)
+				.show();
+
 	}
 
 	@Override
@@ -114,19 +128,16 @@ public class Timeline extends SherlockListFragment implements
 
 	private static class TimelineAdapter extends CursorAdapter {
 
+		private final Context context;
+
 		public TimelineAdapter(Context context, Cursor c) {
 			super(context, c, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
+			this.context = context;
 		}
 
 		@Override
 		public void bindView(View view, Context context, Cursor cursor) {
 			setTweetData(view, cursor);
-
-			if (cursor.isLast()) {
-				// TODO load more tweets
-				Toast.makeText(mContext, "reload more tweets",
-						Toast.LENGTH_LONG).show();
-			}
 		}
 
 		@Override
@@ -137,36 +148,11 @@ public class Timeline extends SherlockListFragment implements
 
 			setTweetData(status, cursor);
 
-			if (cursor.isLast()) {
-				// TODO load more tweets
-				Toast.makeText(mContext, "reload more tweets",
-						Toast.LENGTH_LONG).show();
-			}
-
 			return status;
 		}
 
-		private TweetStatus getStatus(Cursor cursor) {
-			int tweetCoursorId = cursor.getColumnIndex(TweetMeta.TEXT);
-			int userCoursorId = cursor.getColumnIndex(TweetMeta.USER);
-			int createdCoursorId = cursor.getColumnIndex(TweetMeta.CREATED_AT);
-			int sourceCoursorId = cursor.getColumnIndex(TweetMeta.SOURCE);
-			int retweetCoursorId = cursor.getColumnIndex(TweetMeta.RETWEET);
-			int retweetByMeCoursorId = cursor
-					.getColumnIndex(TweetMeta.RETWEET_BY_ME);
-			int tweetIdCoursorId = cursor.getColumnIndex(TweetMeta.TWEET_ID);
-
-			return new TweetStatus(cursor.getLong(tweetIdCoursorId),
-					cursor.getString(tweetCoursorId),
-					cursor.getString(userCoursorId),
-					cursor.getString(sourceCoursorId),
-					cursor.getLong(createdCoursorId),
-					cursor.getInt(retweetCoursorId) > 0,
-					cursor.getInt(retweetByMeCoursorId) > 0);
-		}
-
 		private void setTweetData(View status, Cursor cursor) {
-			TweetStatus tweetStatus = getStatus(cursor);
+			TweetStatus tweetStatus = TweetMeta.getStatus(cursor);
 
 			TextView tweet = (TextView) status
 					.findViewById(R.id.txt_timeline_row_tweet);
@@ -179,81 +165,8 @@ public class Timeline extends SherlockListFragment implements
 			TextView date = (TextView) status
 					.findViewById(R.id.txt_timeline_row_date);
 			DateFormat dateFormat = android.text.format.DateFormat
-					.getTimeFormat(mContext);
+					.getTimeFormat(context);
 			date.setText(dateFormat.format(tweetStatus.getCreatedAt()));
-
-			// TextView source = (TextView) status
-			// .findViewById(R.id.txt_timeline_row_source);
-			// source.setText(Html.fromHtml(tweetStatus.getSource()).toString());
-		}
-	}
-
-	private static class TimelineLoadingTask extends
-			AsyncTask<Void, Void, Void> {
-
-		private final Context context;
-
-		private TimelineLoadingTask(Context context) {
-			this.context = context;
-		}
-
-		@Override
-		protected Void doInBackground(Void... params) {
-			SharedPreferences settings = context.getSharedPreferences(
-					Constants.USER_DATA, Context.MODE_PRIVATE);
-
-			String accessToken = settings.getString("twitter_access_token",
-					null);
-			String accessTokenSecret = settings.getString(
-					"twitter_access_token_secret", null);
-
-			Configuration conf = new ConfigurationBuilder()
-					.setOAuthConsumerKey(OAUTH_CONSUMER_KEY)
-					.setOAuthConsumerSecret(OAUTH_CONSUMER_SECRET)
-					.setOAuthAccessToken(accessToken)
-					.setOAuthAccessTokenSecret(accessTokenSecret).build();
-			Twitter t = new TwitterFactory(conf).getInstance();
-			ResponseList<twitter4j.Status> timeline = null;
-
-			try {
-				timeline = t.getHomeTimeline();
-			} catch (TwitterException e) {
-				Log.e(TimelineLoadingTask.class.getSimpleName(),
-						"Error while loading timeline.", e);
-				return null;
-			}
-
-			Log.i(TimelineLoadingTask.class.getSimpleName(), //
-					timeline.size() + " entries found.");
-
-			ContentValues[] values = new ContentValues[timeline.size()];
-
-			for (int i = 0; i < timeline.size(); i++) {
-				values[i] = getValues(timeline.get(i));
-			}
-
-			context.getContentResolver().delete(TweetMeta.CONTENT_URI, null,
-					null);
-			int insertCount = context.getContentResolver().bulkInsert(
-					TweetMeta.CONTENT_URI, values);
-			Log.i(TimelineLoadingTask.class.getSimpleName(), "Es wurden "
-					+ insertCount + " Einträge gespeichert.");
-
-			return null;
-		}
-
-		private ContentValues getValues(twitter4j.Status status) {
-			ContentValues cv = new ContentValues();
-
-			cv.put(TweetMeta.TWEET_ID, status.getId());
-			cv.put(TweetMeta.TEXT, status.getText());
-			cv.put(TweetMeta.CREATED_AT, status.getCreatedAt().getTime());
-			cv.put(TweetMeta.RETWEET, status.isRetweet());
-			cv.put(TweetMeta.USER, status.getUser().getName());
-			cv.put(TweetMeta.SOURCE, status.getSource());
-			cv.put(TweetMeta.RETWEET_BY_ME, status.isRetweetedByMe());
-
-			return cv;
 		}
 	}
 }

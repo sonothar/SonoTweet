@@ -1,7 +1,10 @@
 package de.sonothar.tweet.provider;
 
+import android.content.ContentValues;
+import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import de.sonothar.tweet.TweetStatus;
 
 public final class TweetMeta implements BaseColumns {
 
@@ -24,6 +27,7 @@ public final class TweetMeta implements BaseColumns {
 	 */
 	static final String PATH_TWEETS = "tweets";
 	static final String PATH_TWEETS_ID = PATH_TWEETS + "/";
+	static final String PATH_LAST_TWEET_ID = "last_tweet_id";
 	static final int TWEET_ID_PATH_POSITION = 1;
 
 	/**
@@ -68,13 +72,54 @@ public final class TweetMeta implements BaseColumns {
 	public static String CREATED_AT = "created_at";
 	public static String RETWEET = "retweet";
 	public static String USER = "user";
+	public static String USER_NICK = "user_nickname";
 	public static String SOURCE = "source";
 	public static String RETWEET_BY_ME = "retweet_by_me";
-	
-	//TODO Provider um mehr Userdaten oder gar eine Usertabelle erweitern.
+
+	public static String[] ALL_COLUMNS = { TWEET_ID, TEXT, CREATED_AT, RETWEET,
+			USER, USER_NICK, SOURCE, RETWEET_BY_ME };
+
+	// TODO Provider um mehr Userdaten oder gar eine Usertabelle erweitern.
 
 	/**
 	 * The default sort order for this table
 	 */
 	public static final String DEFAULT_SORT_ORDER = TWEET_ID + " DESC";
+
+	public static TweetStatus getStatus(Cursor cursor) {
+		int tweetCoursorId = cursor.getColumnIndex(TweetMeta.TEXT);
+		int userCoursorId = cursor.getColumnIndex(TweetMeta.USER);
+		int userNickCoursorId = cursor.getColumnIndex(TweetMeta.USER_NICK);
+		int createdCoursorId = cursor.getColumnIndex(TweetMeta.CREATED_AT);
+		int sourceCoursorId = cursor.getColumnIndex(TweetMeta.SOURCE);
+		int retweetCoursorId = cursor.getColumnIndex(TweetMeta.RETWEET);
+		int retweetByMeCoursorId = cursor
+				.getColumnIndex(TweetMeta.RETWEET_BY_ME);
+		int tweetIdCoursorId = cursor.getColumnIndex(TweetMeta.TWEET_ID);
+
+		return new TweetStatus(cursor.getLong(tweetIdCoursorId),
+				cursor.getString(tweetCoursorId),
+				cursor.getString(userCoursorId),
+				cursor.getString(userNickCoursorId),
+				cursor.getString(sourceCoursorId),
+				cursor.getLong(createdCoursorId),
+				cursor.getInt(retweetCoursorId) > 0,
+				cursor.getInt(retweetByMeCoursorId) > 0);
+	}
+
+	public static ContentValues getValues(twitter4j.Status status) {
+		ContentValues cv = new ContentValues();
+
+		cv.put(TweetMeta.TWEET_ID, status.getId());
+		cv.put(TweetMeta.TEXT, status.getText());
+		cv.put(TweetMeta.CREATED_AT, status.getCreatedAt().getTime());
+		cv.put(TweetMeta.RETWEET, status.isRetweet());
+		cv.put(TweetMeta.USER, status.getUser().getName());
+		cv.put(TweetMeta.USER_NICK, status.getUser().getScreenName());
+		cv.put(TweetMeta.SOURCE, status.getSource());
+		cv.put(TweetMeta.RETWEET_BY_ME, status.isRetweetedByMe());
+
+		return cv;
+	}
+
 }

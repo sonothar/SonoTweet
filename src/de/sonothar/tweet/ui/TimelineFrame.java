@@ -1,16 +1,15 @@
 package de.sonothar.tweet.ui;
 
+import android.app.Activity;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.FragmentTransaction;
-
-import com.actionbarsherlock.app.SherlockFragmentActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
-
+import android.view.Menu;
+import android.view.MenuItem;
 import de.sonothar.tweet.R;
+import de.sonothar.tweet.TweetStatus;
 
-public class TimelineFrame extends SherlockFragmentActivity {
+public class TimelineFrame extends Activity {
 
 	@Override
 	protected void onCreate(Bundle arg0) {
@@ -20,7 +19,7 @@ public class TimelineFrame extends SherlockFragmentActivity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		getSupportMenuInflater().inflate(R.menu.menu, menu);
+		getMenuInflater().inflate(R.menu.menu, menu);
 		return true;
 	}
 
@@ -38,14 +37,14 @@ public class TimelineFrame extends SherlockFragmentActivity {
 		}
 	}
 
-	public void openStatus() {
-		Status status = new Status();
-		FragmentTransaction transaction = getSupportFragmentManager()
+	public void openStatus(TweetStatus tweet) {
+		Status status = Status.newInstance(tweet);
+		FragmentTransaction transaction = getFragmentManager()
 				.beginTransaction();
 
 		transaction.add(R.id.timeline_fragment, status);
 		transaction.addToBackStack(null);
-		transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE
+		transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN
 				| FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
 
 		transaction.commit();

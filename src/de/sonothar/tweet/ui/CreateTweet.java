@@ -1,7 +1,5 @@
 package de.sonothar.tweet.ui;
 
-import static com.actionbarsherlock.app.ActionBar.DISPLAY_HOME_AS_UP;
-import static com.actionbarsherlock.app.ActionBar.DISPLAY_USE_LOGO;
 import static de.sonothar.tweet.Constants.OAUTH_CONSUMER_KEY;
 import static de.sonothar.tweet.Constants.OAUTH_CONSUMER_SECRET;
 import twitter4j.Status;
@@ -10,23 +8,21 @@ import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
+import android.app.ActionBar;
+import android.app.Activity;
+import android.app.LoaderManager.LoaderCallbacks;
+import android.content.AsyncTaskLoader;
 import android.content.Context;
+import android.content.Loader;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.content.AsyncTaskLoader;
-import android.support.v4.content.Loader;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.actionbarsherlock.app.SherlockFragmentActivity;
-import com.actionbarsherlock.view.MenuItem;
-
 import de.sonothar.tweet.R;
 
-public class CreateTweet extends SherlockFragmentActivity implements
-		LoaderCallbacks<Status> {
+public class CreateTweet extends Activity implements LoaderCallbacks<Status> {
 
 	private String tweetText;
 	private SharedPreferences settings;
@@ -36,8 +32,8 @@ public class CreateTweet extends SherlockFragmentActivity implements
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.tweet);
-		getSupportActionBar().setDisplayOptions(DISPLAY_HOME_AS_UP,
-				DISPLAY_HOME_AS_UP | DISPLAY_USE_LOGO);
+		getActionBar().setDisplayOptions(ActionBar.DISPLAY_HOME_AS_UP,
+				ActionBar.DISPLAY_HOME_AS_UP | ActionBar.DISPLAY_USE_LOGO);
 
 		settings = getSharedPreferences("twitter_token", Context.MODE_PRIVATE);
 
@@ -66,7 +62,7 @@ public class CreateTweet extends SherlockFragmentActivity implements
 
 	public void onClickSend(View view) {
 		tweetText = tweetView.getText().toString();
-		getSupportLoaderManager().restartLoader(0, null, this);
+		getLoaderManager().restartLoader(0, null, this);
 	}
 
 	@Override

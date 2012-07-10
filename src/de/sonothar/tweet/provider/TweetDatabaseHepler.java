@@ -15,7 +15,7 @@ class TweetDatabaseHepler extends SQLiteOpenHelper {
 	/**
 	 * The database version
 	 */
-	private static final int DATABASE_VERSION = 1;
+	private static final int DATABASE_VERSION = 2;
 
 	public TweetDatabaseHepler(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -30,6 +30,7 @@ class TweetDatabaseHepler extends SQLiteOpenHelper {
 				+ TweetMeta.CREATED_AT + " TEXT NOT NULL," //
 				+ TweetMeta.RETWEET + " INTEGER NOT NULL," //
 				+ TweetMeta.USER + " TEXT NOT NULL," //
+				+ TweetMeta.USER_NICK + " TEXT NOT NULL," //
 				+ TweetMeta.SOURCE + " TEXT NOT NULL," //
 				+ TweetMeta.RETWEET_BY_ME + " INTEGER NOT NULL" //
 				+ ")");

@@ -2,15 +2,13 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:background="@drawable/timeline_status" >
+    android:orientation="vertical" >
 
     <TextView
         android:id="@+id/txt_timeline_row_tweet"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" 
         android:padding="5dp"
-        android:drawableLeft="@drawable/status_fill_icon"
         android:drawablePadding="10dp"/>
 
     <LinearLayout
