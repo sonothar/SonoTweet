@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lb_send_tweet">Senden</string>
+    <string name="lb_new_tweet">Tweet schreiben</string>
+    <string name="lb_reload">Aktualisieren</string>
+    <string name="lb_logout">Abmelden</string>
+    <string name="lb_login">Anmelden</string>
+</resources>

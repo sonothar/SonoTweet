@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="msg_intro">Wilkommen bei SonoTweet!\nBitte melden Sie sich mit Ihrem Twitter Account an.\n\n\nDiese ist eine Beta Version. Für einen reibungslosen ablauf kann keine Garantie übernommen werden. Abstürze oder Probleme können auftreten.</string>
+    <string name="msg_error">Beim laden trat leider ein Fehler auf. Bitte versuchen Sie es später noch einmal.</string>
+    <string name="msg_no_tweets">Keine Tweets vorhanden!</string>
+</resources>
